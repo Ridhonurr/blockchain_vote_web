@@ -61,7 +61,7 @@ class Blockchain:
         earliest_deleted_index = None # menyimpan index yang tidak valid
         found_block_valid = False
 
-        while previous_block_index >= 0: # melakukan looping validasi hash dari block sebelumnya
+        while previous_block_index > 0: # melakukan looping validasi hash dari block sebelumnya
             previous_block = self.chain[previous_block_index] # mendapatkan index terakhir
             calculated_hash = previous_block.calculate_hash() # melakukan hashing pada index terakhir
 
@@ -74,6 +74,9 @@ class Blockchain:
                 if earliest_deleted_index is None or previous_block_index < earliest_deleted_index:
                     earliest_deleted_index = previous_block_index
                 previous_block_index -= 1 # mengurangi index
+        if previous_block_index == 0:
+            found_block_valid = True
+            new_block.previous_hash = '0'
 
         if found_block_valid: # jika ditemukan block yang valid maka akan menambahkan block baru
             if earliest_deleted_index is not None:
