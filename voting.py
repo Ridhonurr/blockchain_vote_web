@@ -3,6 +3,7 @@ from session import UserManager
 from database import konekdb
 import datetime
 import hashlib
+import json
 
 mydb, cur = konekdb()
 blockchain = Blockchain()
@@ -63,7 +64,7 @@ def voting(nis):
         nis_kandidat = cur.fetchone()
         
         if nis_kandidat:
-            vote(nis, nis_kandidat[0])  # Panggil fungsi vote
+            vote(str(nis), str(nis_kandidat[0]))  # Panggil fungsi vote
         else:
             print("Kandidat tidak ditemukan.")
     else:
@@ -74,8 +75,8 @@ def vote(nis, nis_kandidat):
     kandidat = cur.fetchone()
     new_vote = {
         'NIS Voter': hashlib.sha256(str(nis).encode()).hexdigest(),
-        'Kandidat Terpilih': kandidat,
-        'Timestamp': datetime.datetime.now().isoformat(),
+        'Kandidat Terpilih': f"{kandidat[0]}",
+        'Timestamp': datetime.datetime.now().isoformat()
     }
 
     # buat block baru
