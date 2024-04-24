@@ -24,7 +24,7 @@ def user_session():
         password = input("Masukkan Password: ")
         user = user_manager.login(nis, password)
         if user is not None:
-            voting(user[0])
+            cek_pemilih(user[0])
 
     elif pilihan == '2':
         print(">>>   Signup Session   <<<")
@@ -37,7 +37,7 @@ def user_session():
         user = user_manager.login(nis, password)
         user = user_manager.login(nis, password)
         if user is not None:
-            voting(user[0])
+            cek_pemilih(user[0])
 
 
 def voting(nis):
@@ -88,6 +88,35 @@ def vote(nis, nis_kandidat):
 
     # validasi block
     blockchain.validate_block(new_block)
+    pemilih(nis,nis_kandidat)
+
+def pemilih(nis,nis_kandidat):
+    cur.execute("SELECT * FROM users WHERE NIS = %s", (nis,))
+    user = cur.fetchone()
+    if user:
+        nama = user[1]
+        cur.execute("INSERT INTO pemilih (NIS, nama, kandidat_yang_dipilih) VALUES (%s,%s,%s)", (nis,nama,nis_kandidat))
+        mydb.commit()
+        print("Terima kasih sudah memilih :)")
+    else:
+        print("NIS tidak ditemukan")
+
+def cek_pemilih(nis):
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS pemilih (
+                NIS INT PRIMARY KEY,
+                nama VARCHAR(255),
+                kandidat_yang_dipilih INT
+    )
+    """)
+    cur.execute("SELECT * FROM pemilih WHERE NIS = %s", (nis,))
+    user = cur.fetchone()
+    if user:
+        print("Kamu sudah memilih")
+    else:
+        voting(nis)
+    
+
 
 
 def main():
