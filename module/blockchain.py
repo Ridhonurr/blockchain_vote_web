@@ -60,69 +60,58 @@ class Blockchain:
         cur.execute("SELECT * FROM blocks ORDER BY vote_index ASC")
         blocks = []
         for row in cur.fetchall():
-            # Konversi vote_index ke str
+            # Debugging: Cetak data setiap baris yang diambil dari database
+            print(f"Debug: Row from database - vote_index: {row[0]}, timestamp: {row[1]}, data: {row[2]}, previous_hash: {row[3]}, hash: {row[4]}")
             vote_index = str(row[0])
-            # Parse data dari database menjadi dict
             block_data = json.loads(row[2])
-            # Buat objek Block dengan data
             block = Block(vote_index, row[1], block_data, row[3])
             block.hash = row[4]
             blocks.append(block)
         return blocks
 
     def validate_block(self, new_block):
-        # Periksa apakah ada blok sebelumnya
         if len(self.chain) == 0:
-            # Jika self.chain adalah genesis (hanya memiliki 0 atau 1 blok), lewati validasi dan tambahkan blok baru
             self.add_block(new_block)
             print("Voting berhasil ditambahkan (dari genesis)")
             return True
 
-        # Ambil blok terakhir dari chain
         last_block = self.chain[-1]
 
-        # Hitung hash dari blok terakhir
         calculated_hash = last_block.calculate_hash()
+        print(f"Debug: calculated_hash: {calculated_hash}, last_block.hash: {last_block.hash}")
 
-        # Validasi hash dari blok terakhir
         if calculated_hash == last_block.hash:
-            # Jika hash cocok, gunakan previous_hash dari blok terakhir untuk new_block
             new_block.previous_hash = last_block.hash
-            # Set vote_index untuk new_block
-            # Konversi last_block.vote_index ke str dan tambahkan 1
             new_block.vote_index = str(int(last_block.vote_index) + 1)
-            # Tambahkan blok baru ke chain
             self.add_block(new_block)
             print("Voting berhasil ditambahkan")
             return True
         else:
-            # Jika hash tidak cocok, hapus blok terakhir dan ulangi langkah validasi
             print("Hash tidak cocok pada blok terakhir. Menghapus blok terakhir...")
-            # Hapus blok terakhir dan reset vote_index
-            deleted_vote_index = last_block.vote_index
-            self.remove_block(deleted_vote_index)
-            # Ubah vote_index dari new_block menjadi vote_index dari blok yang dihapus
-            new_block.vote_index = str(deleted_vote_index)
-            # Memperbarui chain dari database
+            print(f"Debug: Menghapus blok terakhir dengan vote_index: {last_block.vote_index}")
+            self.remove_block(last_block.vote_index)
             self.chain = self.load_blocks_from_database()
-            # Ulangi validasi dari atas dengan new_block yang telah diubah
             return self.validate_block(new_block)
 
     def remove_block(self, vote_index):
-        # Hapus blok dari database dan chain
         vote_index = int(vote_index)
         block_to_remove = self.chain[vote_index]
 
+        # Debugging: Cetak detail blok yang akan dihapus
+        print(f"Debug: Menghapus blok dengan vote_index: {block_to_remove.vote_index}, hash: {block_to_remove.hash}")
+        
         cur.execute("DELETE FROM blocks WHERE vote_index = %s", (block_to_remove.vote_index,))
         mydb.commit()
         del self.chain[vote_index]
+        self.chain = self.load_blocks_from_database()
 
     def add_block(self, new_block):
-        # Tambahkan blok ke database dan chain
+        # Debugging: Cetak detail blok baru yang akan ditambahkan
+        print(f"Debug: Menambahkan blok baru - vote_index: {new_block.vote_index}, timestamp: {new_block.timestamp}, data: {new_block.data}, previous_hash: {new_block.previous_hash}, hash: {new_block.hash}")
+        
         cur.execute("""
         INSERT INTO blocks (vote_index, timestamp, data, previous_hash, hash)
         VALUES (%s, %s, %s, %s, %s)
         """, (new_block.vote_index, new_block.timestamp, json.dumps(new_block.data), new_block.previous_hash, new_block.hash))
         mydb.commit()
-        self.chain.append(new_block)
-
+        self.chain = self.load_blocks_from_database()
