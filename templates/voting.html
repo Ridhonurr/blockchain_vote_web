@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="{{ url_for('static', filename='js/custom.js') }}"></script>
+
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="box">
+        <h1>Blockchain Voting System</h1>
+        <div class="votingbox">
+            <h3>Pilih Kandidat Kamu</h3>
+            <form action="" method="post">
+                <div id="carouselExampleControls" class="carousel slide" data-bs-ride="false">
+                    <div class="carousel-inner">
+                        {% for key, value in list.items() %}
+                        <div class="carousel-item {% if loop.first %}active{% endif %}">
+                            <div class="card">
+                                <input type="radio" name="pilihan" value="{{ key }}" {% if loop.first %}checked{% endif %}>
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ value }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <a class="carousel-control carousel-control-prev" href="#carouselExampleControls" role="button" data-bs-slide="prev">
+                        <img src="{{ url_for('static', filename='icon/arrow.png') }}" alt="Previous" style="transform: scaleX(-1);">
+                    </a>
+                    <a class="carousel-control carousel-control-next" href="#carouselExampleControls" role="button" data-bs-slide="next">
+                        <img src="{{ url_for('static', filename='icon/arrow.png') }}" alt="Next">
+                    </a>
+                </div>
+                <div class="text-center">
+                    <input type="submit" value="Pilih" class="btn btn-primary mt-3">
+                </div>
+            </form>
+            <p>{{ berhasil }}</p>
+            {% if error %}
+            <p>Kamu sudah memilih</p>
+            {% endif %}
+        </div>
+        <h2>Real-Time Transactions</h2>
+        <ul id="transaction-list" class="transaction-list"></ul>
+    </div>
+</div>
+{% endblock %}

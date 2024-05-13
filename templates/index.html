@@ -1,11 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    Hello World
-</body>
-</html>
+{% extends 'base.html' %}
+{% block css %}
+<link rel="stylesheet" href="{{  url_for('static', filename='css/style.css') }}">
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="box">
+        <h1>Blockchain Voting System</h1>
+        {% if not session.get('logged_in') %}
+        <form action="" method="post" class="boxform">
+            <input type="text" name="nis" class="formlog" placeholder="NIS" required>
+            <input type="password" name="password" class="formlog" placeholder="Password" required>
+            {% if error %}
+            <p style="color:red;font-style: italic;">NIS atau Password Salah!</p>
+            {% endif %}
+            <input type="submit" value="login" class="logbutton">
+        </form>
+        {% endif %}
+        {% if session.get('logged_in') %}
+        <p>Menuju halaman voting <a href="/vote">Klik</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

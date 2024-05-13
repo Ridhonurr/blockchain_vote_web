@@ -1,9 +1,9 @@
-from blockchain import Blockchain, Block
-from session import UserManager
-from database import konekdb
+from .blockchain import Blockchain, Block
+from .session import UserManager
+from .database import konekdb
 import datetime
 import hashlib
-import json
+
 
 mydb, cur = konekdb()
 blockchain = Blockchain()
@@ -35,14 +35,10 @@ def user_session():
         password = input("Masukkan Password: ")
         user_manager.signup(nis, nama, password, kelas)
         user = user_manager.login(nis, password)
-        user = user_manager.login(nis, password)
         if user is not None:
             cek_pemilih(user[0])
 
-
-def voting(nis):
-    print("Pilih Kandidat yang Kamu Pilih: ")
-    # Ambil kandidat dari database
+def list_kandidat():
     cur.execute("SELECT Nama FROM kandidat")
     kandidat = cur.fetchall()
     
@@ -50,14 +46,14 @@ def voting(nis):
     pilihan_dict = {}
     for index, siswa in enumerate(kandidat, start=1):
         pilihan_dict[str(index)] = siswa[0]  # Simpan pilihan indeks dan nama kandidat
-        print(f"{index}. {siswa[0]}")
-    
-    # Dapatkan pilihan pengguna
-    pilihankamu = input("Siapa yang kamu Pilih? (masukkan angka): ")
+    return pilihan_dict
 
+
+def voting(self,nis,pilihan):
+    pilihan_dict = self.list_kandidat() 
     # Validasi input pengguna
-    if pilihankamu in pilihan_dict:
-        nama_kandidat = pilihan_dict[pilihankamu]
+    if pilihan in pilihan_dict:
+        nama_kandidat = pilihan_dict[pilihan]
         
         # Dapatkan NIS kandidat dari nama
         cur.execute("SELECT NIS FROM kandidat WHERE Nama = %s", (nama_kandidat,))
@@ -111,23 +107,10 @@ def cek_pemilih(nis):
     """)
     cur.execute("SELECT * FROM pemilih WHERE NIS = %s", (nis,))
     user = cur.fetchone()
-    if user:
-        print("Kamu sudah memilih")
-    else:
-        voting(nis)
+    return user
+    # if user:
+    #     error = True
+    #     return error
+    # else:
+    #     voting(nis)
     
-
-
-
-def main():
-    print("\n",
-        "|----------------------------------------------|\n",
-        "|  Selamat Datang di Blockchain Voting System  |\n",
-        "|----------------------------------------------|"
-        )
-    user_session()
-    
-    
-if __name__ == '__main__':
-    main()
-

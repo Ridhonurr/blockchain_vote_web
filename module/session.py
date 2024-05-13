@@ -1,4 +1,4 @@
-from database import konekdb
+from .database import konekdb
 import hashlib
 
 mydb, cur = konekdb()

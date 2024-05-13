@@ -1,6 +1,6 @@
 import hashlib
 import json
-from database import konekdb
+from .database import konekdb
 import datetime
 
 mydb, cur = konekdb()  # Membuat koneksi ke database
