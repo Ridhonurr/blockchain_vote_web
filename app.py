@@ -1,43 +1,35 @@
-from flask import Flask, render_template, url_for, session,redirect, request, Response
+from flask import Flask, render_template, url_for, session, redirect, request, Response, g
 from module.voting import list_kandidat, cek_pemilih, voting
 from module.session import UserManager
 from module.database import konekdb
-import time
 import json
-import threading
-
-mydb, cur = konekdb()
+import time
 
 app = Flask(__name__)
 app.secret_key = 'bec0013002756f5467d5883541b1d04e1eb823316554f6610caca4ef13485d81'
 
-def generate_transactions(logged_in):
-    while logged_in:
-        cur.execute("SELECT * FROM blocks ORDER BY vote_index DESC LIMIT 10")
-        transactions = cur.fetchall()
+def get_db():
+    if 'db' not in g:
+        g.db, g.cur = konekdb()
+    return g.db, g.cur
 
-        formatted_transactions = []
-        for transaction in transactions:
-            formatted_transaction = {
-                'Vote Index': transaction[0],
-                'Timestamp': transaction[1],
-                'Data': transaction[2],
-                'Previous Hash': transaction[3],
-                'Hash': transaction[4]
-            }
-            formatted_transactions.append(formatted_transaction)
+@app.before_request
+def before_request():
+    get_db()
 
-        yield 'data: {}\n\n'.format(json.dumps(formatted_transactions))
+@app.teardown_request
+def teardown_request(exception):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
 
-        time.sleep(1)
-
-@app.route("/", methods=["GET","POST"])
+@app.route("/", methods=["GET", "POST"])
 def index():
     user_manager = UserManager()
     if request.method == 'POST' and 'nis' in request.form and 'password' in request.form:
         nis = request.form['nis']
         password = request.form['password']
-        user = user_manager.login(nis,password)
+        user = user_manager.login(nis, password)
         error = False
         if user:
             session['logged_in'] = True
@@ -54,13 +46,11 @@ def vote():
     if 'username' in session:
         kandidat_list = list_kandidat()
         error = False
-        print(session['nis'])
         print("Memproses permintaan di route '/vote'")
         if request.method == 'POST':
             nis = session['nis']
             pilihan = request.form['pilihan']
             user = cek_pemilih(nis)
-            print(pilihan)
             if user:
                 error = True
                 print(f"User pemilih: {user[1]}")
@@ -75,7 +65,6 @@ def vote():
     else:
         print("Pengguna belum login, mengarahkan ke halaman login.")
         return redirect(url_for('index'))
-    
 
 @app.route('/logout')
 def logout():
@@ -86,8 +75,28 @@ def logout():
 
 @app.route("/transactions")
 def transactions():
-    logged_in = 'logged_in' in session and session['logged_in']
-    return Response(generate_transactions(logged_in), content_type='text/event-stream')
+    if 'logged_in' in session and session['logged_in']:
+        def generate():
+            with app.app_context():
+                while True:
+                    db, cur = get_db()
+                    cur.execute("SELECT * FROM blocks ORDER BY vote_index DESC LIMIT 10")
+                    transactions = cur.fetchall()
+                    formatted_transactions = []
+                    for transaction in transactions:
+                        formatted_transaction = {
+                            'Vote Index': transaction[0],
+                            'Timestamp': transaction[1],
+                            'Data': transaction[2],
+                            'Previous Hash': transaction[3],
+                            'Hash': transaction[4]
+                        }
+                        formatted_transactions.append(formatted_transaction)
+                    yield 'data: {}\n\n'.format(json.dumps(formatted_transactions))
+                    time.sleep(1)
+        return Response(generate(), content_type='text/event-stream')
+    else:
+        return '', 403
 
 if __name__ == "__main__":
     app.run(debug=True)
