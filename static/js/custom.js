@@ -8,13 +8,13 @@ eventSource.onmessage = function(event) {
     transactions.forEach(transaction => {
         const listItem = document.createElement('li');
         listItem.classList.add('transaction-item');
-        listItem.innerHTML = `
-            <p><strong>Vote Index:</strong> ${transaction['Vote Index']}</p>
-            <p><strong>Timestamp:</strong> ${transaction['Timestamp']}</p>
-            <p><strong>Data:</strong> ${transaction['Data']}</p>
-            <p><strong>Previous Hash:</strong> ${transaction['Previous Hash']}</p>
-            <p><strong>Hash:</strong> ${transaction['Hash']}</p>
-        `;
+        // Buat teks dengan format yang diinginkan
+        const text = `#${transaction['Vote Index']} Timestamp: ${transaction['Timestamp']} Data: ${transaction['Data']} Previous Hash: ${transaction['Previous Hash']} Hash: ${transaction['Hash']}`;
+        listItem.textContent = text;
         transactionList.appendChild(listItem);
     });
+};
+
+eventSource.onerror = function(event) {
+    console.error('Error occurred with SSE connection:', event);
 };

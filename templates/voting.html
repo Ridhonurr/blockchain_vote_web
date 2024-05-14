@@ -41,7 +41,10 @@
             {% endif %}
         </div>
         <h2>Real-Time Transactions</h2>
-        <ul id="transaction-list" class="transaction-list"></ul>
+        <div class="transaction-list-container">
+            <!-- Ubah ul menjadi div untuk mendukung scroll horizontal -->
+            <div id="transaction-list" class="transaction-list"></div>
+        </div>
     </div>
 </div>
 {% endblock %}

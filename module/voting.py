@@ -49,8 +49,8 @@ def list_kandidat():
     return pilihan_dict
 
 
-def voting(self,nis,pilihan):
-    pilihan_dict = self.list_kandidat() 
+def voting(nis,pilihan):
+    pilihan_dict = list_kandidat() 
     # Validasi input pengguna
     if pilihan in pilihan_dict:
         nama_kandidat = pilihan_dict[pilihan]
@@ -60,7 +60,7 @@ def voting(self,nis,pilihan):
         nis_kandidat = cur.fetchone()
         
         if nis_kandidat:
-            vote(str(nis), str(nis_kandidat[0]))  # Panggil fungsi vote
+            vote(str(nis), str(nis_kandidat[0])) # Panggil fungsi vote
         else:
             print("Kandidat tidak ditemukan.")
     else:
@@ -98,6 +98,7 @@ def pemilih(nis,nis_kandidat):
         print("NIS tidak ditemukan")
 
 def cek_pemilih(nis):
+    # Hanya panggil pembuatan tabel jika belum ada
     cur.execute("""
     CREATE TABLE IF NOT EXISTS pemilih (
                 NIS INT PRIMARY KEY,
@@ -107,7 +108,13 @@ def cek_pemilih(nis):
     """)
     cur.execute("SELECT * FROM pemilih WHERE NIS = %s", (nis,))
     user = cur.fetchone()
-    return user
+    
+    # Handle kasus ketika tidak ada pemilih yang ditemukan
+    if user is None:
+        return None
+    else:
+        return user
+
     # if user:
     #     error = True
     #     return error

@@ -4,11 +4,32 @@ from module.session import UserManager
 from module.database import konekdb
 import time
 import json
+import threading
 
 mydb, cur = konekdb()
 
 app = Flask(__name__)
 app.secret_key = 'bec0013002756f5467d5883541b1d04e1eb823316554f6610caca4ef13485d81'
+
+def generate_transactions(logged_in):
+    while logged_in:
+        cur.execute("SELECT * FROM blocks ORDER BY vote_index DESC LIMIT 10")
+        transactions = cur.fetchall()
+
+        formatted_transactions = []
+        for transaction in transactions:
+            formatted_transaction = {
+                'Vote Index': transaction[0],
+                'Timestamp': transaction[1],
+                'Data': transaction[2],
+                'Previous Hash': transaction[3],
+                'Hash': transaction[4]
+            }
+            formatted_transactions.append(formatted_transaction)
+
+        yield 'data: {}\n\n'.format(json.dumps(formatted_transactions))
+
+        time.sleep(1)
 
 @app.route("/", methods=["GET","POST"])
 def index():
@@ -33,14 +54,16 @@ def vote():
     if 'username' in session:
         kandidat_list = list_kandidat()
         error = False
+        print(session['nis'])
         print("Memproses permintaan di route '/vote'")
         if request.method == 'POST':
             nis = session['nis']
             pilihan = request.form['pilihan']
             user = cek_pemilih(nis)
-            print(f"User pemilih: {user[1]}")
+            print(pilihan)
             if user:
                 error = True
+                print(f"User pemilih: {user[1]}")
                 print(f"Pemilih telah memilih sebelumnya: {user[2]}")
                 return render_template('voting.html', error=error, list=kandidat_list)
             else:
@@ -61,36 +84,10 @@ def logout():
     session.pop('logged_in', False)
     return redirect(url_for('index'))
 
-# Endpoint untuk menampilkan data transaksi secara real-time
-# Endpoint untuk menampilkan data transaksi secara real-time
 @app.route("/transactions")
 def transactions():
-    if 'logged_in' in session and session['logged_in']:
-        def generate():
-            while True:
-                # Ambil data transaksi dari database (contoh: pengambilan 10 transaksi terbaru)
-                cur.execute("SELECT * FROM blocks ORDER BY vote_index DESC LIMIT 10")
-                transactions = cur.fetchall()
+    logged_in = 'logged_in' in session and session['logged_in']
+    return Response(generate_transactions(logged_in), content_type='text/event-stream')
 
-                # Format output data transaksi
-                formatted_transactions = []
-                for transaction in transactions:
-                    formatted_transaction = {
-                        'Vote Index': transaction[0],
-                        'Timestamp': transaction[1],
-                        'Data': transaction[2],
-                        'Previous Hash': transaction[3],
-                        'Hash': transaction[4]
-                    }
-                    formatted_transactions.append(formatted_transaction)
-
-                # Kirim data transaksi sebagai Server-Sent Events
-                yield 'data: {}\n\n'.format(json.dumps(formatted_transactions))
-
-                # Biarkan proses menunggu sebelum mengambil transaksi berikutnya
-                time.sleep(1)  # Misalnya, tunggu 1 detik sebelum mengambil data lagi
-
-        return Response(generate(), content_type='text/event-stream')
-    else:
-        return '', 403
-
+if __name__ == "__main__":
+    app.run(debug=True)

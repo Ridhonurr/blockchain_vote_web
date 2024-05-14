@@ -67,15 +67,18 @@ body {
     justify-content: center;
     align-items: center;
 }
-
-.transaction-list {
-    list-style-type: none;
-    padding: 0;
+/* Mengatur warna latar belakang dan warna teks pada transaction-list-container */
+.transaction-list-container {
+    max-width: 100%; /* Membuat kontainer dapat discroll horizontal */
+    overflow-x: auto; /* Mengaktifkan discroll horizontal */
+    white-space: nowrap; /* Mencegah wrap konten transaksi */
+    background-color: #222; /* Warna latar belakang keabu-abuan gelap */
+    color: #fff; /* Warna teks putih */
+    padding: 10px;
 }
 
-.transaction-item {
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    padding: 10px;
-    background-color: #f9f9f9;
+.transaction-list {
+    display: inline-block; /* Menampilkan setiap transaksi dalam satu baris */
+    white-space: nowrap; /* Mencegah wrap konten transaksi */
+    list-style-type: none;
 }
