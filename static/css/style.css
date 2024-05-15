@@ -82,3 +82,16 @@ body {
     white-space: nowrap; /* Mencegah wrap konten transaksi */
     list-style-type: none;
 }
+
+.vote-index {
+    color: tomato;
+}
+.timestamp {
+    color: #00ff0d;
+}
+.data {
+    color: #ffea00;
+}
+.previous-hash {
+    color: grey;
+}

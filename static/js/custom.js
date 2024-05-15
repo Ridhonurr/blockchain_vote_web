@@ -8,9 +8,16 @@ eventSource.onmessage = function(event) {
     transactions.forEach(transaction => {
         const listItem = document.createElement('li');
         listItem.classList.add('transaction-item');
-        // Buat teks dengan format yang diinginkan
-        const text = `#${transaction['Vote Index']} Timestamp: ${transaction['Timestamp']} Data: ${transaction['Data']} Previous Hash: ${transaction['Previous Hash']} Hash: ${transaction['Hash']}`;
-        listItem.textContent = text;
+        
+        // Buat teks dengan elemen span untuk memberikan warna
+        const text = `
+            <span class="vote-index">#${transaction['Vote Index']}</span>
+            <span class="timestamp">Timestamp: ${transaction['Timestamp']}</span>
+            <span class="data">Data: ${transaction['Data']}</span>
+            <span class="previous-hash">Previous Hash: ${transaction['Previous Hash']}</span>
+            <span class="hash">Hash: ${transaction['Hash']}</span>
+        `;
+        listItem.innerHTML = text;
         transactionList.appendChild(listItem);
     });
 };

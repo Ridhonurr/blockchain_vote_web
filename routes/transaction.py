@@ -1,38 +1,19 @@
-###### Module
-from flask import Flask, g, session, Response
-from module.db_utils import get_db
-import json
+from flask import Blueprint, session, Response, current_app
 import time
+import json
+import os
+import sys
+from module.db_utils import get_db
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','module')))
 
-###### import blueprint
-from routes.index import index_bp
-from routes.vote import vote_bp
-from routes.transaction import transaction_bp
-from routes.logout import logout_bp
+transaction_bp = Blueprint('transaction', __name__)
 
-app = Flask(__name__)
-app.secret_key = 'bec0013002756f5467d5883541b1d04e1eb823316554f6610caca4ef13485d81'
-
-@app.before_request
-def before_request():
-    get_db()
-
-@app.teardown_request
-def teardown_request(exception):
-    db = g.pop('db', None)
-    if db is not None:
-        db.close()
-
-app.register_blueprint(index_bp)
-app.register_blueprint(vote_bp)
-app.register_blueprint(logout_bp)
-
-@app.route("/transactions")
+@transaction_bp.route("/transactions")
 def transactions():
     if 'logged_in' in session and session['logged_in']:
         def generate():
-            with app.app_context():
+            with current_app.app_context():
                 while True:
                     db, cur = get_db()
                     cur.execute("SELECT * FROM blocks ORDER BY vote_index DESC LIMIT 10")
@@ -52,7 +33,3 @@ def transactions():
         return Response(generate(), content_type='text/event-stream')
     else:
         return '', 403
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
