@@ -1,14 +1,13 @@
 ###### Module
 from flask import Flask, g, session, Response
 from module.db_utils import get_db
-import json
+import ujson
 import time
 
 
 ###### import blueprint
 from routes.index import index_bp
 from routes.vote import vote_bp
-from routes.transaction import transaction_bp
 from routes.logout import logout_bp
 
 app = Flask(__name__)
@@ -47,7 +46,7 @@ def transactions():
                             'Hash': transaction[4]
                         }
                         formatted_transactions.append(formatted_transaction)
-                    yield 'data: {}\n\n'.format(json.dumps(formatted_transactions))
+                    yield 'data: {}\n\n'.format(ujson.dumps(formatted_transactions))
                     time.sleep(1)
         return Response(generate(), content_type='text/event-stream')
     else:
