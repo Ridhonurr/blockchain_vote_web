@@ -13,6 +13,13 @@ class UserManager:
                     kelas VARCHAR(10)
         )
         """)
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS kandidat (
+            NIS INT PRIMARY KEY,
+            Nama varchar(255) not null
+        )
+        """)
+        
     def login(self, nis, password):
         self.nis = nis
         self.password = hashlib.sha256(password.encode()).hexdigest()
@@ -36,13 +43,12 @@ class UserManager:
 
     def buat_kandidat(self,nis):
         self.nis = nis
-        cur.execute("SELECT * FROM users WHERE NIS = %s", (self.nis,))
+        cur.execute("SELECT nama FROM users WHERE NIS = %s", (self.nis,))
         user = cur.fetchone()
         if user:
-            for row in user:
-                cur.execute("INSERT INTO kandidat (NIS, Nama) VALUES (%s,%s)", (row[0],row[1]))
-                mydb.commit()
-                print(f"Selamat, {row[1]} terpilih menjadi kandidat")
+            cur.execute(f"INSERT INTO kandidat (NIS, Nama) VALUES ({self.nis},'{user[0]}')")
+            mydb.commit()
+            print(f"Selamat, {user[0]} terpilih menjadi kandidat")
         else:
             print("tidak ada siswa yang menggunakan NIS ini")
         

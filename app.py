@@ -3,15 +3,19 @@ from flask import Flask, g, session, Response
 from module.db_utils import get_db
 import ujson
 import time
+from dotenv import load_dotenv
+import os
 
-
+load_dotenv()
+SECRET_KEY = os.getenv("secret")
 ###### import blueprint
 from routes.index import index_bp
 from routes.vote import vote_bp
 from routes.logout import logout_bp
 
+
 app = Flask(__name__)
-app.secret_key = 'bec0013002756f5467d5883541b1d04e1eb823316554f6610caca4ef13485d81'
+app.secret_key = SECRET_KEY
 
 @app.before_request
 def before_request():
